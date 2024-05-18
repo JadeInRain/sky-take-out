@@ -50,7 +50,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         //密码比对
-        // TODO 后期需要进行md5加密，然后再进行比对
+
+        password = DigestUtils.md5DigestAsHex(password.getBytes());
         if (!password.equals(employee.getPassword())) {
             //密码错误
             throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
@@ -97,4 +98,33 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return new PageResult(total,records);
     }
+
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        Employee employee = Employee.builder()
+                .status(status)
+                .id(id)
+                .build();
+
+        employeeMapper.update(employee);
+    }
+
+    @Override
+    public Employee getById(Long id) {
+        Employee employee = employeeMapper.getById(id);
+        employee.setPassword("****");
+        return employee;
+    }
+
+    @Override
+    public void update(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDTO, employee);//对象的属性拷贝
+
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser(BaseContext.getCurrentId());//底层通过threadlocal获取id
+
+        employeeMapper.update(employee);
+    }
+
 }
